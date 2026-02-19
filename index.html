@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROYAL LEGEND - CASINO PRO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Orbitron:wght@400;900&display=swap');
+        
+        :root { --gold: #ffd700; --neon-blue: #00f2ff; --bg: #050505; --win: #00ff44; }
+        body { background: var(--bg); color: white; font-family: 'Orbitron', sans-serif; margin: 0; overflow: hidden; user-select: none; }
+        
+        /* Pul Yağışı Fonu */
+        #money-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.6; }
+
+        /* Qeydiyyat Ekranı */
+        #auth-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #111; border: 3px solid var(--gold); padding: 35px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px var(--gold); width: 310px; }
+
+        /* Oyun Aparatı Dizaynı */
+        .casino-frame { border: 10px solid #222; border-radius: 40px; background: linear-gradient(180deg, #151515, #000); padding: 25px; margin: 15px auto; width: fit-content; box-shadow: 0 0 80px rgba(255,215,0,0.2); position: relative; border-top: 15px solid #333; }
+        .slot-display { display: flex; gap: 12px; background: #000; padding: 20px; border-radius: 15px; border: 4px solid #333; margin: 15px 0; }
+        .reel { width: 85px; height: 105px; background: #111; border: 2px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 50px; text-shadow: 0 0 15px white; }
+
+        /* Düymələr */
+        .btn-gold { background: linear-gradient(180deg, var(--gold), #b8860b); color: #000; padding: 12px 30px; font-size: 18px; font-weight: 900; border-radius: 50px; border: none; cursor: pointer; transition: 0.3s; width: 100%; margin: 5px 0; font-family: 'Orbitron'; }
+        .btn-withdraw { background: transparent; color: var(--win); border: 1px solid var(--win); font-size: 11px; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+
+        /* Yan Düymələr */
+        .side-btn { position: fixed; left: 10px; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--gold); z-index: 1001; font-size: 20px; }
+        #adm-btn { top: 10px; background: #500; }
+        #op-btn { top: 65px; background: #005; }
+
+        /* Modallar */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 5000; padding: 20px; overflow-y: auto; }
+        .modal-content { background: #111; border: 2px solid var(--gold); padding: 20px; border-radius: 15px; max-width: 450px; margin: auto; }
+        input { width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 8px; text-align: center; }
+
+        /* Jackpot Tebrik */
+        #jackpot-anim { display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 9000; font-size: 45px; color: var(--gold); text-align: center; font-weight: 900; text-shadow: 0 0 40px gold; animation: scaleUp 0.5s infinite alternate; }
+        @keyframes scaleUp { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
+    </style>
+</head>
+<body>
+
+<canvas id="money-canvas"></canvas>
+<div id="jackpot-anim">🎊 TƏBRİKLƏR! 🎊<br>BÖYÜK UDUŞ!</div>
+
+<div id="auth-screen">
+    <div class="auth-card">
+        <h2 style="color:var(--gold); font-family:'Goldman';">ROYAL CASINO</h2>
+        <p style="font-size:12px; color:#888;">Oyuna başlamaq üçün qeydiyyatdan keçin</p>
+        <input type="text" id="reg-name" placeholder="Ad Soyad">
+        <input type="tel" id="reg-phone" placeholder="Telefon Nömrəsi">
+        <button class="btn-gold" onclick="register()">GİRİŞ ET</button>
+    </div>
+</div>
+
+<div id="admin-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="color:red">ADMİN İDARƏETMƏ</h2>
+        <input type="password" id="adm-pass" placeholder="Şifrə">
+        <button class="btn-gold" onclick="loginAdmin()">GİRİŞ</button>
+        <div id="admin-panel-ui" style="display:none; margin-top:20px;">
+            <h4 style="color:var(--neon-blue)">Müştəri Bazası:</h4>
+            <div id="user-list-area" style="font-size:12px; text-align:left; border:1px solid #333; padding:10px;"></div>
+            <h4 style="color:var(--win)">Mesajlar və Çıxarışlar:</h4>
+            <div id="logs-area" style="font-size:10px; color:orange;"></div>
+            <br><button onclick="closeModals()">BAĞLA</button>
+        </div>
+    </div>
+</div>
+
+<div id="op-modal" class="modal">
+    <div class="modal-content">
+        <h3 style="color:var(--gold)">Şikayət və Təklif</h3>
+        <p style="font-size:11px;">Yazdığınız məktub birbaşa Admine çatacaq.</p>
+        <textarea id="op-text" style="width:100%; height:100px; background:#000; color:white; border:1px solid var(--gold);"></textarea>
+        <button class="btn-gold" style="margin-top:10px;" onclick="sendToAdmin()">MƏKTUBU GÖNDƏR</button>
+        <button onclick="closeModals()">BAĞLA</button>
+    </div>
+</div>
+
+<div id="withdraw-modal" class="modal">
+    <div class="modal-content">
+        <h3 style="color:var(--win)">Pul Çıxarışı</h3>
+        <input type="number" id="w-amount" placeholder="Məbləğ (AZN)">
+        <input type="text" id="w-card" placeholder="Kart nömrəsi (16 rəqəm)">
+        <p style="font-size:10px; color:yellow;">⚠️ Diqqət: Pul 24 saat ərzində kartınıza yüklənəcək.</p>
+        <button class="btn-gold" onclick="submitWithdraw()">TƏSDİQLƏ</button>
+        <button onclick="closeModals()">LƏĞV ET</button>
+    </div>
+</div>
+
+<div id="adm-btn" class="side-btn" onclick="openModal('admin-modal')">⚙️</div>
+<div id="op-btn" class="side-btn" onclick="openModal('op-modal')">🎧</div>
+
+<div class="casino-frame">
+    <h1 style="color:var(--gold); text-align:center; font-family:'Goldman'; margin:0; font-size:26px;">ROYAL LEGEND</h1>
+    
+    <div style="text-align:center; margin:15px 0;">
+        <span style="font-size:22px; color:var(--neon-blue);">BALANS: <span id="u-bal">0.00</span> AZN</span><br>
+        <button class="btn-withdraw" onclick="openModal('withdraw-modal')">💳 PUL ÇIXAR</button>
+    </div>
+
+    <div class="slot-display">
+        <div id="r1" class="reel">💎</div>
+        <div id="r2" class="reel">💎</div>
+        <div id="r3" class="reel">💎</div>
+    </div>
+
+    <div style="display:flex; gap:10px; background: #222; padding: 10px; border-radius: 10px;">
+        <input type="number" id="bet-val" value="10" style="width:40%; margin:0; padding:5px;">
+        <button class="btn-gold" style="width:60%; margin:0;" onclick="spin()">FIRLAT</button>
+    </div>
+
+    <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px; font-size:11px; text-align:center;">
+        <p>Binance: <code style="color:var(--neon-blue); cursor:pointer;" onclick="copyBin()">TJQbpsPqD9up2iwHUCLZHdxs1g67uq3mrQ</code></p>
+        <p>TikTok: <span style="color:var(--neon-blue); cursor:pointer;" onclick="window.open('https://www.tiktok.com/@elcan.alzade3')">@elcan.alzade3</span></p>
+    </div>
+</div>
+
+<script>
+    let users = JSON.parse(localStorage.getItem('casino_users')) || [];
+    let reports = JSON.parse(localStorage.getItem('casino_reports')) || [];
+    let currentUser = null;
+    const items = ["💎", "7️⃣", "🍒", "🍋", "🍏", "🍇", "💎", "⭐"];
+
+    function register() {
+        let n = document.getElementById('reg-name').value;
+        let p = document.getElementById('reg-phone').value;
+        if(!n || !p) return alert("Məlumatları daxil edin!");
+        
+        currentUser = { name: n, phone: p, balance: 500.00 }; // Demo üçün 500 hədiyyə
+        users.push(currentUser);
+        save();
+        document.getElementById('auth-screen').style.display = 'none';
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('u-bal').innerText = currentUser.balance.toFixed(2);
+    }
+
+    function save() {
+        localStorage.setItem('casino_users', JSON.stringify(users));
+        localStorage.setItem('casino_reports', JSON.stringify(reports));
+    }
+
+    function spin() {
+        let b = parseFloat(document.getElementById('bet-val').value);
+        if(currentUser.balance < b) return alert("Balans kifayət deyil!");
+        
+        currentUser.balance -= b;
+        updateUI();
+
+        let count = 0;
+        let itv = setInterval(() => {
+            document.getElementById('r1').innerText = items[Math.floor(Math.random()*items.length)];
+            document.getElementById('r2').innerText = items[Math.floor(Math.random()*items.length)];
+            document.getElementById('r3').innerText = items[Math.floor(Math.random()*items.length)];
+            count++;
+            if(count > 12) {
+                clearInterval(itv);
+                checkLogic(b);
+            }
+        }, 60);
+    }
+
+    function checkLogic(bet) {
+        // Orta stabil şans (30% uduş ehtimalı)
+        if(Math.random() < 0.3) {
+            let winS = items[Math.floor(Math.random()*items.length)];
+            document.getElementById('r1').innerText = winS;
+            document.getElementById('r2').innerText = winS;
+            document.getElementById('r3').innerText = winS;
+            currentUser.balance += (bet * 4);
+            showJackpot();
+        }
+        updateUI();
+        save();
+    }
+
+    function showJackpot() {
+        document.getElementById('jackpot-anim').style.display = 'block';
+        setTimeout(() => { document.getElementById('jackpot-anim').style.display = 'none'; }, 2500);
+    }
+
+    /* Modallar */
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
+
+    /* Admin İşləri */
+    function loginAdmin() {
+        if(document.getElementById('adm-pass').value === "19961996") {
+            document.getElementById('admin-panel-ui').style.display = 'block';
+            renderAdminData();
+        }
+    }
+
+    function renderAdminData() {
+        let uArea = document.getElementById('user-list-area');
+        uArea.innerHTML = users.map((u, i) => `
+            <div style="margin-bottom:8px; border-bottom:1px solid #222; padding:4px;">
+                ${u.name} | ${u.phone} | <b style="color:gold">${u.balance.toFixed(2)} ₼</b><br>
+                <button onclick="setBal(${i})">Balans Yaz</button> 
+                <button onclick="delUser(${i})" style="color:red">SİL</button>
+            </div>
+        `).join('');
+        document.getElementById('logs-area').innerHTML = reports.map(r => `<p>• ${r}</p>`).reverse().join('');
+    }
+
+    function setBal(i) {
+        let val = prompt("Yeni balans miqdarını yazın:");
+        if(val !== null) {
+            users[i].balance = parseFloat(val);
+            if(users[i].phone === currentUser.phone) { currentUser.balance = parseFloat(val); updateUI(); }
+            save(); renderAdminData();
+        }
+    }
+
+    function delUser(i) {
+        if(confirm("Bu müştərini sistemdən silmək istəyirsiniz?")) {
+            users.splice(i, 1);
+            save(); renderAdminData();
+        }
+    }
+
+    function sendToAdmin() {
+        let txt = document.getElementById('op-text').value;
+        reports.push(`MƏKTUB [${currentUser.name}]: ${txt}`);
+        save();
+        alert("Məktubunuz Admine göndərildi!");
+        closeModals();
+    }
+
+    function submitWithdraw() {
+        let amt = document.getElementById('w-amount').value;
+        let crd = document.getElementById('w-card').value;
+        if(amt > currentUser.balance || amt < 10) return alert("Xəta!");
+        
+        currentUser.balance -= parseFloat(amt);
+        reports.push(`💰 ÇIXARIŞ: ${currentUser.name} | ${amt} AZN | Kart: ${crd}`);
+        save();
+        updateUI();
+        alert("Sorğunuz qəbul edildi. 24 saat ərzində yüklənəcək.");
+        closeModals();
+    }
+
+    function copyBin() { navigator.clipboard.writeText("TJQbpsPqD9up2iwHUCLZHdxs1g67uq3mrQ"); alert("Kopyalandı!"); }
+
+    /* Pul Yağışı */
+    const canvas = document.getElementById('money-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const drops = [];
+    for(let i=0; i<45; i++) drops.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*3+2});
+    function rain() {
+        ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="rgba(255,215,0,0.5)"; ctx.font="20px Arial";
+        drops.forEach(d => { ctx.fillText("₼", d.x, d.y); d.y+=d.s; if(d.y>canvas.height) d.y=-20; });
+        requestAnimationFrame(rain);
+    }
+    rain();
+</script>
+</body>
+</html>
